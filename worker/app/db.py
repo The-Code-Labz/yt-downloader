@@ -1,8 +1,9 @@
 from functools import lru_cache
 from typing import Any
 
-from supabase import Client, create_client
 from supabase.client import ClientOptions
+
+from supabase import Client, create_client
 
 from .config import get_settings
 

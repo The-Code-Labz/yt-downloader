@@ -6,7 +6,6 @@ from rq import Queue, Retry
 
 from .config import get_settings
 
-
 QUEUE_NAME = "neuroarchive"
 
 

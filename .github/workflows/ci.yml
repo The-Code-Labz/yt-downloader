@@ -54,7 +54,7 @@ jobs:
 
       - name: Install dependencies + tools
         working-directory: backend
-        run: pip install -r requirements.txt ruff pytest
+        run: pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Lint (ruff)
         working-directory: backend
@@ -86,7 +86,7 @@ jobs:
 
       - name: Install dependencies + tools
         working-directory: worker
-        run: pip install -r requirements.txt ruff pytest
+        run: pip install -r requirements.txt -r requirements-dev.txt
 
       - name: Lint (ruff)
         working-directory: worker

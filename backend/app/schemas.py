@@ -3,7 +3,6 @@ from typing import Literal
 
 from pydantic import BaseModel, HttpUrl
 
-
 MediaType = Literal["audio", "video"]
 Quality = Literal["best", "1080p", "720p", "audio"]
 JobStatus = Literal[
