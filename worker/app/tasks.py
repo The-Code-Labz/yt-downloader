@@ -1,6 +1,5 @@
 """RQ task entrypoint — `run_download(job_id)`."""
 import logging
-import traceback
 import uuid
 from pathlib import Path
 
@@ -94,11 +93,11 @@ def run_download(job_id: str) -> None:
 
 def purge_old_downloads(days: int) -> int:
     """Optional housekeeping job: deletes objects + rows older than `days` days."""
-    from datetime import datetime, timedelta, timezone
+    from datetime import datetime, timedelta
 
     if days <= 0:
         return 0
-    cutoff = (datetime.now(timezone.utc) - timedelta(days=days)).isoformat()
+    cutoff = (datetime.now(datetime.UTC) - timedelta(days=days)).isoformat()
     sb = db.supabase()
     res = (
         sb.table("downloads")

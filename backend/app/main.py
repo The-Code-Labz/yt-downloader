@@ -1,7 +1,7 @@
 """NeuroArchive FastAPI entrypoint."""
 import logging
 
-from fastapi import Depends, FastAPI, WebSocket
+from fastapi import FastAPI, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
 
 from .config import get_settings
