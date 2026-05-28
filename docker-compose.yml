@@ -1,0 +1,70 @@
+name: neuroarchive
+
+services:
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    command: ["redis-server", "--save", "60", "1", "--loglevel", "warning"]
+    volumes:
+      - redis-data:/data
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 3s
+      retries: 5
+
+  backend:
+    build: ./backend
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+    depends_on:
+      redis:
+        condition: service_healthy
+    ports:
+      - "8000:8000"
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.neuroarchive-api.rule=Host(`api.archive.example.com`)"
+      - "traefik.http.routers.neuroarchive-api.entrypoints=websecure"
+      - "traefik.http.routers.neuroarchive-api.tls.certresolver=letsencrypt"
+      - "traefik.http.services.neuroarchive-api.loadbalancer.server.port=8000"
+
+  worker:
+    build: ./worker
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      REDIS_URL: redis://redis:6379/0
+      TEMP_DIR: /tmp/neuroarchive
+    depends_on:
+      redis:
+        condition: service_healthy
+    volumes:
+      - worker-tmp:/tmp/neuroarchive
+    deploy:
+      replicas: 1     # scale this up for parallel downloads
+
+  frontend:
+    build:
+      context: ./frontend
+      args:
+        VITE_API_URL:          ${VITE_API_URL:-http://localhost:8000}
+        VITE_SUPABASE_URL:     ${VITE_SUPABASE_URL}
+        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    restart: unless-stopped
+    ports:
+      - "5173:80"
+    depends_on:
+      - backend
+    labels:
+      - "traefik.enable=true"
+      - "traefik.http.routers.neuroarchive-web.rule=Host(`archive.example.com`)"
+      - "traefik.http.routers.neuroarchive-web.entrypoints=websecure"
+      - "traefik.http.routers.neuroarchive-web.tls.certresolver=letsencrypt"
+      - "traefik.http.services.neuroarchive-web.loadbalancer.server.port=80"
+
+volumes:
+  redis-data:
+  worker-tmp:

@@ -1,0 +1,39 @@
+# Example Traefik (v3) static + dynamic configuration to front NeuroArchive.
+# Drop this into your Traefik host and adjust `archive.example.com` / email.
+
+# ─── static (traefik.yml) ───────────────────────────────────────────────────
+# entryPoints:
+#   web:        { address: ":80" }
+#   websecure:  { address: ":443" }
+# providers:
+#   docker:
+#     exposedByDefault: false
+# certificatesResolvers:
+#   letsencrypt:
+#     acme:
+#       email: you@example.com
+#       storage: /letsencrypt/acme.json
+#       httpChallenge: { entryPoint: web }
+
+# ─── dynamic ────────────────────────────────────────────────────────────────
+http:
+  middlewares:
+    redirect-https:
+      redirectScheme:
+        scheme: https
+        permanent: true
+    sec-headers:
+      headers:
+        frameDeny: true
+        contentTypeNosniff: true
+        referrerPolicy: "strict-origin-when-cross-origin"
+        stsSeconds: 31536000
+        stsIncludeSubdomains: true
+        customResponseHeaders:
+          X-Powered-By: ""
+  routers:
+    archive-http:
+      rule: "Host(`archive.example.com`) || Host(`api.archive.example.com`)"
+      entryPoints: [web]
+      middlewares: [redirect-https]
+      service: noop@internal
