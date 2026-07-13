@@ -1,6 +1,7 @@
 import { supabase } from "./supabase";
+import { runtimeEnv } from "./runtime-env";
 
-const API_URL = (import.meta.env.VITE_API_URL as string) || "http://localhost:8000";
+const API_URL = runtimeEnv.API_URL;
 
 export type MediaType = "audio" | "video";
 export type Quality = "best" | "1080p" | "720p" | "audio";
