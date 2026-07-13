@@ -148,10 +148,8 @@ jobs:
         with:
           context: ./frontend
           push: false
-          build-args: |
-            VITE_API_URL=http://localhost:8000
-            VITE_SUPABASE_URL=https://placeholder.supabase.co
-            VITE_SUPABASE_ANON_KEY=placeholder_anon_key
+          # No VITE_* build-args: config is injected at container start now,
+          # not at build time — see docker-entrypoint.d/40-env-config.sh.
           cache-from: type=gha
           cache-to: type=gha,mode=max
           tags: neuroarchive/frontend:ci

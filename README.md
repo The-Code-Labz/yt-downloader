@@ -88,6 +88,7 @@ neuroarchive/
 │       └── progress.py
 └── frontend/                     ← Vite + React + Tailwind + shadcn
     ├── Dockerfile
+    ├── docker-entrypoint.d/40-env-config.sh  ← writes runtime env-config.js on container start
     ├── nginx.conf
     ├── package.json
     ├── vite.config.ts
@@ -95,11 +96,12 @@ neuroarchive/
     ├── postcss.config.js
     ├── index.html
     ├── .env.example
+    ├── public/env-config.js      ← dev-only placeholder, overwritten in the container
     └── src/
         ├── main.tsx
         ├── App.tsx
         ├── index.css
-        ├── lib/{api.ts,utils.ts,supabase.ts}
+        ├── lib/{api.ts,utils.ts,supabase.ts,runtime-env.ts}
         ├── hooks/{useJobs.ts,useJobStream.ts}
         ├── pages/{Library.tsx,NewDownload.tsx,Settings.tsx,Login.tsx}
         └── components/
@@ -158,9 +160,17 @@ Fill in the values you collected above. The root `.env` is consumed by docker-co
 
 ### 5. Run with Docker
 
+`docker-compose.yml` pulls pre-built, multi-arch (`linux/amd64` + `linux/arm64`) images
+from GHCR — published by `.github/workflows/publish.yml` on every push to `main`
+and on version tags — rather than building locally. This works unmodified on
+Debian/Ubuntu x86_64 hosts and on ARM hosts (e.g. Oracle Cloud Ampere A1 free tier).
+
 ```bash
-docker compose up --build
+docker compose pull
+docker compose up -d
 ```
+
+Pin a specific release instead of `latest` by setting `IMAGE_TAG=v1.2.3` in `.env`.
 
 Services come up on:
 

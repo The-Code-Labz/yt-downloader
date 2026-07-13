@@ -14,7 +14,7 @@ services:
       retries: 5
 
   backend:
-    build: ./backend
+    image: ghcr.io/the-code-labz/yt-downloader/backend:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:
@@ -32,7 +32,7 @@ services:
       - "traefik.http.services.neuroarchive-api.loadbalancer.server.port=8000"
 
   worker:
-    build: ./worker
+    image: ghcr.io/the-code-labz/yt-downloader/worker:${IMAGE_TAG:-latest}
     restart: unless-stopped
     env_file: .env
     environment:
@@ -47,13 +47,14 @@ services:
       replicas: 1     # scale this up for parallel downloads
 
   frontend:
-    build:
-      context: ./frontend
-      args:
-        VITE_API_URL:          ${VITE_API_URL:-http://localhost:8000}
-        VITE_SUPABASE_URL:     ${VITE_SUPABASE_URL}
-        VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
+    image: ghcr.io/the-code-labz/yt-downloader/frontend:${IMAGE_TAG:-latest}
     restart: unless-stopped
+    environment:
+      # Read at container start by docker-entrypoint.d/40-env-config.sh,
+      # NOT baked in at image build time — same image works for any deployment.
+      VITE_API_URL:          ${VITE_API_URL:-http://localhost:8000}
+      VITE_SUPABASE_URL:     ${VITE_SUPABASE_URL}
+      VITE_SUPABASE_ANON_KEY: ${VITE_SUPABASE_ANON_KEY}
     ports:
       - "5173:80"
     depends_on:
