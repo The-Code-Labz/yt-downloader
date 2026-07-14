@@ -1,4 +1,8 @@
-yt-dlp==2024.11.18
+# Pinned to a recent release, not a fixed old one — YouTube changes its
+# player/signature/format serving often enough that a stale yt-dlp silently
+# stops matching real formats (symptom: "Requested format is not available").
+# Bump this periodically; check https://github.com/yt-dlp/yt-dlp/releases.
+yt-dlp==2026.07.04
 PySocks==1.7.1
 redis==5.2.0
 rq==2.0.0

@@ -21,12 +21,35 @@ class DownloadResult:
 def _format_selector(media_type: str, quality: str) -> str:
     if media_type == "audio" or quality == "audio":
         return "bestaudio/best"
+    # Many videos no longer offer a muxed mp4/m4a pair at all (YouTube has
+    # been shifting non-premium formats to AV1/VP9-in-webm-only). The old
+    # chain ended at a bare "best", which still failed on videos where the
+    # *only* available streams are separate video-only + audio-only tracks
+    # in non-mp4/m4a containers. `bv*+ba/b` is yt-dlp's own unconstrained
+    # catch-all (any video+any audio, else any single format) — ffmpeg
+    # remuxes/merges to mp4 via merge_output_format regardless of source
+    # container, so this never sacrifices the final output format.
     if quality == "1080p":
-        return "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]/best[height<=1080]/best"
+        return (
+            "bestvideo[height<=1080][ext=mp4]+bestaudio[ext=m4a]"
+            "/best[height<=1080]"
+            "/bestvideo[height<=1080]+bestaudio"
+            "/bv*+ba/b"
+        )
     if quality == "720p":
-        return "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]/best[height<=720]/best"
+        return (
+            "bestvideo[height<=720][ext=mp4]+bestaudio[ext=m4a]"
+            "/best[height<=720]"
+            "/bestvideo[height<=720]+bestaudio"
+            "/bv*+ba/b"
+        )
     # best
-    return "bestvideo[ext=mp4]+bestaudio[ext=m4a]/best[ext=mp4]/best"
+    return (
+        "bestvideo[ext=mp4]+bestaudio[ext=m4a]"
+        "/best[ext=mp4]"
+        "/bestvideo+bestaudio"
+        "/bv*+ba/b"
+    )
 
 
 def run_ytdlp(
