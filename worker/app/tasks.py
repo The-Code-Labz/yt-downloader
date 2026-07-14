@@ -54,6 +54,7 @@ def run_download(job_id: str) -> None:
             out_dir=work_dir,
             on_progress=on_progress,
             cookies_file=settings.ytdlp_cookies_file,
+            proxy=settings.ytdlp_proxy,
         )
 
         _set(

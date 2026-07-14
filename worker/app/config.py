@@ -20,7 +20,15 @@ class Settings(BaseSettings):
     # Path to a Netscape-format cookies.txt (mounted read-only) used to get
     # yt-dlp past YouTube's "Sign in to confirm you're not a bot" bot-check.
     # Left unset by default; ytdl.py no-ops if the path is empty or missing.
+    # Re-read from disk on every job — no restart needed when the file changes
+    # (see scripts/refresh_cookies.py for automated refresh).
     ytdlp_cookies_file: str | None = None
+
+    # Proxy yt-dlp's outbound requests through, e.g. a SOCKS5 tunnel back to a
+    # residential/home network with better YouTube IP reputation than a cloud
+    # host. Accepts any yt-dlp/urllib3 proxy URL: socks5://[user:pass@]host:port
+    # or http://[user:pass@]host:port. Left unset by default (direct egress).
+    ytdlp_proxy: str | None = None
 
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 

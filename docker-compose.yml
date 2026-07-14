@@ -24,6 +24,11 @@ services:
         condition: service_healthy
     ports:
       - "8000:8000"
+    volumes:
+      # Shared with the worker below — lets scripts/refresh_cookies.py push a
+      # fresh cookies.txt via `PUT /admin/cookies` (requires ADMIN_SECRET set
+      # in .env) without ever touching this host or redeploying.
+      - cookies-data:/data/cookies
     labels:
       - "traefik.enable=true"
       - "traefik.http.routers.neuroarchive-api.rule=Host(`api.archive.example.com`)"
@@ -38,15 +43,24 @@ services:
     environment:
       REDIS_URL: redis://redis:6379/0
       TEMP_DIR: /tmp/neuroarchive
+      # Option A — dynamic (recommended): fed by scripts/refresh_cookies.py
+      # via the backend's /admin/cookies endpoint, no restart needed on refresh.
+      YTDLP_COOKIES_FILE: /data/cookies/cookies.txt
+      # Option B — static manual export instead: comment the line above,
+      # uncomment this one + the bind-mount below (see README § YouTube bot-check).
       # YTDLP_COOKIES_FILE: /app/cookies.txt
+      # SOCKS5/HTTP proxy for yt-dlp's egress — e.g. a tunnel back to a
+      # residential/home network with better YouTube IP standing than this
+      # host. See README § Bypass via a home-network proxy. Leave unset for
+      # direct egress.
+      # YTDLP_PROXY: socks5://user:pass@100.x.y.z:1080
     depends_on:
       redis:
         condition: service_healthy
     volumes:
       - worker-tmp:/tmp/neuroarchive
-      # YouTube "Sign in to confirm you're not a bot" bot-check: export a
-      # Netscape-format cookies.txt (see README § YouTube bot-check) and
-      # place it next to this compose file, then uncomment both lines below.
+      - cookies-data:/data/cookies:ro
+      # Option B (static manual export) — see the env var note above.
       # - ./cookies.txt:/app/cookies.txt:ro
     deploy:
       replicas: 1     # scale this up for parallel downloads
@@ -74,3 +88,4 @@ services:
 volumes:
   redis-data:
   worker-tmp:
+  cookies-data:

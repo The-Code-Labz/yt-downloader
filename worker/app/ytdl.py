@@ -36,6 +36,7 @@ def run_ytdlp(
     out_dir: Path,
     on_progress: Callable[[dict[str, Any]], None] | None = None,
     cookies_file: str | None = None,
+    proxy: str | None = None,
 ) -> DownloadResult:
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -62,6 +63,14 @@ def run_ytdlp(
     # if unset/missing so a bad path never breaks non-YouTube downloads.
     if cookies_file and Path(cookies_file).is_file():
         ydl_opts["cookiefile"] = cookies_file
+
+    # Route the download through a proxy (e.g. a SOCKS5 tunnel back to a
+    # residential/home network) instead of this container's own egress IP —
+    # datacenter IP ranges get bot-walled far more aggressively than
+    # residential ones, independent of cookies. socks5:// requires PySocks
+    # (see requirements.txt); yt-dlp raises a clear error if it's missing.
+    if proxy:
+        ydl_opts["proxy"] = proxy
 
     if media_type == "audio":
         ydl_opts["postprocessors"] = [

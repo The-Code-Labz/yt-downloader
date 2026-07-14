@@ -1,0 +1,10 @@
+[Unit]
+Description=Push fresh YouTube cookies to yt-downloader
+
+[Service]
+Type=oneshot
+# Adjust the path and env values, or point EnvironmentFile at a chmod 600 file
+# containing REFRESH_COOKIES_BROWSER / REFRESH_COOKIES_BACKEND_URL /
+# REFRESH_COOKIES_ADMIN_SECRET instead of inlining the secret here.
+EnvironmentFile=%h/.config/yt-downloader/refresh-cookies.env
+ExecStart=/usr/bin/python3 %h/yt-downloader/scripts/refresh_cookies.py
