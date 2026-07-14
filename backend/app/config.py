@@ -25,6 +25,15 @@ class Settings(BaseSettings):
     signed_url_ttl_seconds: int = 3600
     auto_delete_days: int = 0
 
+    # Shared-secret auth for POST /admin/cookies (separate from Supabase JWTs
+    # since it's called by an unattended home-network script, not a browser
+    # session). Left unset by default — the endpoint 404s until configured.
+    admin_secret: str | None = None
+    # Must match the worker's YTDLP_COOKIES_FILE for the push to take effect;
+    # written atomically (tmp file + rename) so the worker never reads a
+    # half-written file mid-request.
+    cookies_file_path: str = "/data/cookies/cookies.txt"
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
     @property

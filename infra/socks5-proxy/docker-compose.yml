@@ -1,0 +1,26 @@
+# Lightweight authenticated SOCKS5 proxy — run this on your HOME network
+# (the one you actually watch YouTube from), not on the same host as the
+# yt-downloader stack. Point the worker's YTDLP_PROXY at this container's
+# address over whatever mesh/VPN links the two networks (NetBird, Tailscale,
+# WireGuard, or a reverse SSH tunnel all work — anything that gives the
+# yt-downloader host a route to this port).
+#
+# Usage:
+#   cp .env.example .env   # set PROXY_USER / PROXY_PASSWORD
+#   docker compose up -d
+#
+# Then on the yt-downloader side, set in its .env:
+#   YTDLP_PROXY=socks5://<PROXY_USER>:<PROXY_PASSWORD>@<this-machine's-mesh-ip>:1080
+
+services:
+  socks5:
+    image: serjs/go-socks5-proxy:latest
+    restart: unless-stopped
+    environment:
+      PROXY_USER: ${PROXY_USER}
+      PROXY_PASSWORD: ${PROXY_PASSWORD}
+    ports:
+      # Bind to the mesh/VPN interface only where possible instead of 0.0.0.0
+      # if your compose/host setup supports interface-scoped port binding —
+      # e.g. "100.x.y.z:1080:1080" once you know your NetBird/Tailscale IP.
+      - "1080:1080"
