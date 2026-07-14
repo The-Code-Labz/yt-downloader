@@ -35,6 +35,7 @@ def run_ytdlp(
     quality: str,
     out_dir: Path,
     on_progress: Callable[[dict[str, Any]], None] | None = None,
+    cookies_file: str | None = None,
 ) -> DownloadResult:
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -54,6 +55,13 @@ def run_ytdlp(
         "restrictfilenames": True,
         "retries": 3,
     }
+
+    # YouTube's "Sign in to confirm you're not a bot" wall — export a
+    # Netscape-format cookies.txt from a logged-in browser session and mount
+    # it into the worker (see README § YouTube bot-check). Silently skipped
+    # if unset/missing so a bad path never breaks non-YouTube downloads.
+    if cookies_file and Path(cookies_file).is_file():
+        ydl_opts["cookiefile"] = cookies_file
 
     if media_type == "audio":
         ydl_opts["postprocessors"] = [

@@ -17,6 +17,11 @@ class Settings(BaseSettings):
     redis_url: str = "redis://redis:6379/0"
     temp_dir: str = "/tmp/neuroarchive"
 
+    # Path to a Netscape-format cookies.txt (mounted read-only) used to get
+    # yt-dlp past YouTube's "Sign in to confirm you're not a bot" bot-check.
+    # Left unset by default; ytdl.py no-ops if the path is empty or missing.
+    ytdlp_cookies_file: str | None = None
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
 

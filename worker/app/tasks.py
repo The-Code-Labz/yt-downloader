@@ -53,6 +53,7 @@ def run_download(job_id: str) -> None:
             quality=row["quality"],
             out_dir=work_dir,
             on_progress=on_progress,
+            cookies_file=settings.ytdlp_cookies_file,
         )
 
         _set(
