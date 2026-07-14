@@ -1,8 +1,9 @@
 """NeuroArchive FastAPI entrypoint."""
 import logging
 
-from fastapi import FastAPI, WebSocket
+from fastapi import FastAPI, Request, WebSocket
 from fastapi.middleware.cors import CORSMiddleware
+from fastapi.responses import JSONResponse
 
 from .config import get_settings
 from .deps import get_current_user
@@ -10,6 +11,7 @@ from .routes import downloads, health
 from .ws import stream_job
 
 logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger("neuroarchive")
 
 settings = get_settings()
 
@@ -26,6 +28,21 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+
+@app.exception_handler(Exception)
+async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONResponse:
+    """Catch-all so unexpected errors still get a body + CORS headers.
+
+    Without this, Starlette's default ServerErrorMiddleware returns a bare
+    500 that bypasses CORSMiddleware entirely — the browser then reports a
+    (misleading) CORS failure instead of the real backend error. Registering
+    a handler here routes the exception through ExceptionMiddleware instead,
+    so the response still flows back out through CORSMiddleware.
+    """
+    logger.exception("Unhandled exception on %s %s", request.method, request.url.path)
+    return JSONResponse(status_code=500, content={"detail": f"{type(exc).__name__}: {exc}"})
+
 
 app.include_router(health.router, tags=["meta"])
 app.include_router(downloads.router, tags=["downloads"])
