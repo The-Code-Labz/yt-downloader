@@ -248,6 +248,19 @@ All endpoints require a Supabase JWT in `Authorization: Bearer <token>`.
 
 ---
 
+## YouTube bot-check
+
+If jobs fail with `ERROR: [youtube] ...: Sign in to confirm you're not a bot`, YouTube is blocking the worker's IP as anonymous/automated traffic — expected on cloud/VPS IPs, not specific to this app. Fix by giving yt-dlp a real session's cookies:
+
+1. Log into `youtube.com` in a normal browser, export cookies in **Netscape format** with an extension like *Get cookies.txt LOCALLY*.
+2. Save the export as `cookies.txt` next to `docker-compose.yml` on the host.
+3. In `docker-compose.yml`, uncomment the `worker` service's cookie volume line and `YTDLP_COOKIES_FILE` env var (also documented in `.env.example`).
+4. `docker compose up -d --force-recreate worker`.
+
+Cookies expire — re-export and repeat if the error comes back. Missing/misconfigured `YTDLP_COOKIES_FILE` is a silent no-op (non-YouTube sources are unaffected either way).
+
+---
+
 ## Traefik
 
 `infra/traefik.example.yml` shows the labels needed to expose the frontend on `https://archive.example.com` and the API on `https://api.archive.example.com`. Drop it into your Traefik stack or merge the labels into `docker-compose.yml`.
