@@ -1,6 +1,11 @@
+import logging
 from functools import lru_cache
+from urllib.parse import urlsplit
 
+from pydantic import field_validator
 from pydantic_settings import BaseSettings, SettingsConfigDict
+
+log = logging.getLogger(__name__)
 
 
 class Settings(BaseSettings):
@@ -16,6 +21,24 @@ class Settings(BaseSettings):
     r2_secret_access_key: str
     r2_bucket: str
     r2_public_base_url: str | None = None
+
+    @field_validator("r2_endpoint")
+    @classmethod
+    def _strip_endpoint_path(cls, v: str) -> str:
+        """boto3 path-style-addresses R2 (bucket becomes the first URL path
+        segment). A stray path on R2_ENDPOINT (e.g. .../neuroarchive) silently
+        folds into every uploaded object's key as a duplicate bucket-name
+        prefix — the S3 endpoint must be scheme+host only, never bucket-scoped."""
+        parts = urlsplit(v)
+        if parts.path not in ("", "/"):
+            log.warning(
+                "R2_ENDPOINT=%s has a path component (%s); stripping it. "
+                "The endpoint must NOT include the bucket name — set R2_BUCKET "
+                "instead, or every object key gets a silent '%s/' prefix.",
+                v, parts.path, parts.path.strip("/"),
+            )
+            v = f"{parts.scheme}://{parts.netloc}"
+        return v
 
     # Redis
     redis_url: str = "redis://redis:6379/0"
