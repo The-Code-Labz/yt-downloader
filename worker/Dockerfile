@@ -6,8 +6,12 @@ ENV PYTHONDONTWRITEBYTECODE=1 \
     TEMP_DIR=/tmp/neuroarchive
 
 RUN apt-get update \
-    && apt-get install -y --no-install-recommends ffmpeg ca-certificates \
+    && apt-get install -y --no-install-recommends ffmpeg ca-certificates curl unzip \
     && rm -rf /var/lib/apt/lists/*
+
+# yt-dlp shells out to Deno for YouTube signature/nsig deciphering
+RUN curl -fsSL https://deno.land/install.sh | DENO_INSTALL=/usr/local sh -s -- -y \
+    && chmod +x /usr/local/bin/deno
 
 WORKDIR /app
 
