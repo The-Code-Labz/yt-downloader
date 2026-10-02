@@ -60,6 +60,7 @@ def run_ytdlp(
     on_progress: Callable[[dict[str, Any]], None] | None = None,
     cookies_file: str | None = None,
     proxy: str | None = None,
+    remote_components: str | None = None,
 ) -> DownloadResult:
     out_dir.mkdir(parents=True, exist_ok=True)
 
@@ -79,6 +80,17 @@ def run_ytdlp(
         "restrictfilenames": True,
         "retries": 3,
     }
+
+    # Lets yt-dlp fetch its JS challenge-solver script ("ejs") on demand to
+    # pass YouTube's signature/"n" challenge. Without this, web-client formats
+    # get silently skipped ("YouTube is forcing SABR streaming...") and the
+    # job fails with a generic "The page needs to be reloaded"/no-formats
+    # error even with valid cookies — a different wall than the bot-check
+    # cookies solve. See https://github.com/yt-dlp/yt-dlp/wiki/EJS
+    if remote_components:
+        ydl_opts["remote_components"] = [
+            c.strip() for c in remote_components.split(",") if c.strip()
+        ]
 
     # YouTube's "Sign in to confirm you're not a bot" wall — export a
     # Netscape-format cookies.txt from a logged-in browser session and mount

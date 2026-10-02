@@ -53,6 +53,15 @@ class Settings(BaseSettings):
     # or http://[user:pass@]host:port. Left unset by default (direct egress).
     ytdlp_proxy: str | None = None
 
+    # Components yt-dlp is allowed to fetch at runtime to solve YouTube's JS
+    # signature/"n" challenge (the "The page needs to be reloaded"/empty-formats
+    # failure mode, separate from the cookies bot-check). Comma-separated, passed
+    # straight through to yt-dlp's --remote-components equivalent. Defaults on
+    # since without it every web-client format gets silently skipped. Set to ""
+    # to disable (matches yt-dlp's own default, useful if running an official
+    # yt-dlp release that bundles non-fetching alternatives).
+    ytdlp_remote_components: str = "ejs:github"
+
     model_config = SettingsConfigDict(env_file=".env", case_sensitive=False)
 
 
