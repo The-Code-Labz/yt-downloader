@@ -238,6 +238,50 @@ All endpoints require a Supabase JWT in `Authorization: Bearer <token>`.
 
 ---
 
+## Agent API
+
+Lets an automated agent (no Supabase login) start a download and later pull the
+finished file, authed with a shared secret header instead of a user JWT.
+
+**Setup**
+
+1. Create one dedicated Supabase auth user to own agent-created jobs (e.g.
+   `agents@yourdomain`) — every row in `downloads` needs a real `user_id` FK,
+   even when inserted via the service-role key. Copy its UUID.
+2. In the deployed stack's `.env`, set:
+   ```
+   AGENT_API_KEY=$(openssl rand -hex 32)
+   AGENT_USER_ID=<the UUID from step 1>
+   ```
+3. Redeploy the backend. Leaving either value unset 404s all `/agent/*`
+   routes (same behavior as the unconfigured admin-cookies endpoint).
+
+**Endpoints** — all require header `X-Agent-Key: <AGENT_API_KEY>`:
+
+| Method | Path                    | Description                                              |
+| ------ | ----------------------- | ---------------------------------------------------------- |
+| POST   | `/agent/download`       | Start a download job (same body as `POST /download`)     |
+| GET    | `/agent/jobs`           | List agent-owned jobs                                    |
+| GET    | `/agent/job/{id}`       | Get a job, with `signed_url` once completed               |
+| GET    | `/agent/job/{id}/file`  | 302-redirects to a fresh signed R2 URL (ready for `curl -L`) |
+| DELETE | `/agent/job/{id}`       | Delete a job and its R2 object                             |
+
+**Example**
+
+```bash
+# Start it
+job=$(curl -s -X POST "$API_URL/agent/download" \
+  -H "X-Agent-Key: $AGENT_API_KEY" -H "Content-Type: application/json" \
+  -d '{"url":"https://www.youtube.com/watch?v=...","media_type":"video","quality":"best"}')
+id=$(echo "$job" | jq -r .id)
+
+# Poll until completed, then pull it
+until [ "$(curl -s "$API_URL/agent/job/$id" -H "X-Agent-Key: $AGENT_API_KEY" | jq -r .status)" = completed ]; do sleep 5; done
+curl -L "$API_URL/agent/job/$id/file" -H "X-Agent-Key: $AGENT_API_KEY" -o out.mp4
+```
+
+---
+
 ## Bonus features included
 
 * **Auto-delete** — set `AUTO_DELETE_DAYS` in backend env; a daily RQ-scheduler job purges old objects.

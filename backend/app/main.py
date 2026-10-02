@@ -7,7 +7,7 @@ from fastapi.responses import JSONResponse
 
 from .config import get_settings
 from .deps import get_current_user
-from .routes import admin, downloads, health
+from .routes import admin, agent, downloads, health
 from .ws import stream_job
 
 logging.basicConfig(level=logging.INFO)
@@ -47,6 +47,7 @@ async def unhandled_exception_handler(request: Request, exc: Exception) -> JSONR
 app.include_router(health.router, tags=["meta"])
 app.include_router(downloads.router, tags=["downloads"])
 app.include_router(admin.router)
+app.include_router(agent.router)
 
 
 @app.websocket("/ws/jobs/{job_id}")
