@@ -5,18 +5,9 @@ from .. import db, r2
 from ..deps import get_current_user
 from ..queue import enqueue_download
 from ..schemas import DownloadCreate, DownloadOut
+from ..serialize import serialize_download as _serialize
 
 router = APIRouter()
-
-
-def _serialize(row: dict, include_signed_url: bool = False) -> DownloadOut:
-    signed = None
-    if include_signed_url and row.get("r2_key") and row.get("status") == "completed":
-        try:
-            signed = r2.signed_url(row["r2_key"])
-        except Exception:  # noqa: BLE001
-            signed = None
-    return DownloadOut(**row, signed_url=signed)
 
 
 @router.post("/download", response_model=DownloadOut, status_code=status.HTTP_201_CREATED)

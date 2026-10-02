@@ -57,6 +57,17 @@ class Settings(BaseSettings):
     # half-written file mid-request.
     cookies_file_path: str = "/data/cookies/cookies.txt"
 
+    # Agent API — lets automated agents (no Supabase session) start and pull
+    # downloads via a shared secret header (same pattern as ADMIN_SECRET).
+    # All agent-created jobs are owned by `agent_user_id`, which must be a
+    # real row in auth.users (the downloads table FKs user_id -> auth.users
+    # and service-role inserts still need a valid id to satisfy it). Create
+    # one dedicated Supabase user for this (e.g. agents@yourdomain) and put
+    # its UUID here. Leave AGENT_API_KEY unset to disable the endpoints
+    # entirely (404s), same as /admin/cookies.
+    agent_api_key: str | None = None
+    agent_user_id: str | None = None
+
     model_config = SettingsConfigDict(env_file=".env", env_file_encoding="utf-8", case_sensitive=False)
 
     @property
