@@ -1,7 +1,7 @@
 """REST endpoints for download jobs."""
 from fastapi import APIRouter, Depends, HTTPException, status
 
-from .. import db
+from .. import db, r2
 from ..deps import get_current_user
 from ..queue import enqueue_download
 from ..schemas import DownloadCreate, DownloadOut
