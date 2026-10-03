@@ -6,6 +6,7 @@ import { Sidebar } from "@/components/Sidebar";
 import Library from "@/pages/Library";
 import NewDownload from "@/pages/NewDownload";
 import Settings from "@/pages/Settings";
+import Docs from "@/pages/Docs";
 import Login from "@/pages/Login";
 
 export default function App() {
@@ -34,6 +35,7 @@ export default function App() {
       <Routes>
         <Route path="/" element={<Library />} />
         <Route path="/new" element={<NewDownload />} />
+        <Route path="/docs" element={<Docs />} />
         <Route path="/settings" element={<Settings />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
