@@ -1,11 +1,12 @@
 import { NavLink } from "react-router-dom";
-import { Library, Plus, Settings, LogOut } from "lucide-react";
+import { Library, Plus, Settings, Code2, LogOut } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { supabase } from "@/lib/supabase";
 
 const items = [
   { to: "/", label: "Library", Icon: Library, end: true },
   { to: "/new", label: "New Download", Icon: Plus },
+  { to: "/docs", label: "Agent API", Icon: Code2 },
   { to: "/settings", label: "Settings", Icon: Settings },
 ];
 
